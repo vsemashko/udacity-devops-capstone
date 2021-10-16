@@ -4,14 +4,8 @@ orbs:
   aws-eks: circleci/aws-eks@1.1.0
   kubernetes: circleci/kubernetes@0.12.0
 
-jobs:
-  create-cluster:
-    executor: aws-eks/python3
-    parameters:
-      cluster-name:
-        description: |
-          Name of the EKS cluster to be created
-        type: string
+commands:
+  install-eksctl:
     steps:
       - run:
           name: Install the eksctl tool
@@ -35,9 +29,26 @@ jobs:
             fi
             $SUDO mv eksctl_download/eksctl /usr/local/bin/
             rmdir eksctl_download
+
+
+jobs:
+  create-cluster:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster to be created
+        type: string
+    steps:
+      - install-eksctl
       - aws-eks/create-cluster:
           cluster-name: << parameters.cluster-name >>
           verbose: 4
+          tags: "Project=UdacityCapstone"
+          node-type: "t2.micro"
+          nodes-max: 2
+          ssh-access: true
+          ssh-public-key: "udacity_aws"
   test-cluster:
     executor: aws-eks/python3
     parameters:
@@ -53,6 +64,18 @@ jobs:
           command: |
             kubectl get services
           name: Test cluster
+  delete-cluster:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster to be deleted
+        type: string
+    steps:
+      - install-eksctl
+      - aws-eks/delete-cluster:
+          cluster-name: << parameters.cluster-name >>
+          verbose: 4
 workflows:
   deployment:
     jobs:
@@ -62,7 +85,7 @@ workflows:
           cluster-name: my-eks-demo
           requires:
             - create-cluster
-      - aws-eks/delete-cluster:
+      - delete-cluster:
           cluster-name: my-eks-demo
           requires:
             - test-cluster
