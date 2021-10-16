@@ -85,7 +85,7 @@ workflows:
           cluster-name: my-eks-demo
           requires:
             - create-cluster
-      - delete-cluster:
-          cluster-name: my-eks-demo
-          requires:
-            - test-cluster
+      #- delete-cluster:
+      #    cluster-name: my-eks-demo
+      #    requires:
+      #     - test-cluster
