@@ -58,16 +58,20 @@ jobs:
             echo "check cluster creation"
             echo $CLUSTER_VAR
 
-            eksctl get cluster $CLUSTER_VAR 2> /dev/null
+            CLUSTER_NOT_EXIST=$(eksctl get cluster $CLUSTER_VAR 2>&1 >/dev/null )
             echo "!!!!!"
 
-            if [ $? -eq 0 ]; then
-              echo "will skip cluster creation"
-              echo "export CLUSTER_NAME=''" >> $BASH_ENV
-            else
+            if [ ! -z "$CLUSTER_NOT_EXIST" ]; then
               echo "will create cluster"
               echo "export CLUSTER_NAME=$CLUSTER_VAR" >> $BASH_ENV
+            else
+              echo "will skip cluster creation"
+              echo "export CLUSTER_NAME=''" >> $BASH_ENV
             fi
+
+            echo "done!"
+            echo $CLUSTER_NAME
+
       - aws-eks/create-cluster:
           cluster-name: << parameters.created-cluster-name >>
           verbose: 4
