@@ -56,6 +56,9 @@ jobs:
             CLUSTER_VAR="<< parameters.cluster-name >>"
             echo "check cluster creation"
             echo $CLUSTER_VAR
+
+            eksctl get cluster $CLUSTER_VAR
+
             CLUSTER_NOT_EXIST=$(eksctl get cluster $CLUSTER_VAR 2>&1 >/dev/null)
 
             echo "!!!!!!!!!"
