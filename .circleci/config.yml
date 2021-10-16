@@ -40,40 +40,10 @@ jobs:
           Name of the EKS cluster to be created
         type: string
         default: ''
-      created-cluster-name:
-        description: |
-          Actual name, which will be used during cluster creation name
-          If cluster already exists, it should be evaulated to empty string to omit cluster cration
-        type: env_var_name
-        default: CLUSTER_NAME
     steps:
       - install-eksctl
-      - run:
-          shell: /bin/bash
-          name: Determine created cluster name
-          description: |
-            Check if cluster exists, and if yes - pass empty cluster name, which will skip cluster creation
-          command: |
-            CLUSTER_VAR="<< parameters.cluster-name >>"
-            echo "check cluster creation"
-            echo $CLUSTER_VAR
-
-            CLUSTER_NOT_EXIST=$(eksctl get cluster $CLUSTER_VAR 2>&1 >/dev/null )
-            echo "!!!!!"
-
-            if [ ! -z "$CLUSTER_NOT_EXIST" ]; then
-              echo "will create cluster"
-              echo "export CLUSTER_NAME=$CLUSTER_VAR" >> $BASH_ENV
-            else
-              echo "will skip cluster creation"
-              echo "export CLUSTER_NAME=''" >> $BASH_ENV
-            fi
-
-            echo "done!"
-            echo $CLUSTER_NAME
-
       - aws-eks/create-cluster:
-          cluster-name: << parameters.created-cluster-name >>
+          cluster-name: << parameters.cluster-name >>
           verbose: 4
           tags: "Project=UdacityCapstone"
           node-type: "t2.micro"
@@ -110,8 +80,7 @@ jobs:
 workflows:
   deployment:
     jobs:
-      - create-cluster:
-          cluster-name: my-eks-demo
+      - create-cluster
       - test-cluster:
           cluster-name: my-eks-demo
           requires:
