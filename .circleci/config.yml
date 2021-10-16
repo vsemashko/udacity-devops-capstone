@@ -52,12 +52,12 @@ jobs:
           name: Determine created cluster name
           description: |
             Check if cluster exists, and if yes - pass empty cluster name, which will skip cluster creation
-          command: >
+          command: |
             CLUSTER_VAR="<< parameters.cluster-name >>"
             echo "check cluster creation"
             echo $CLUSTER_VAR
             CLUSTER_EXISTS=$(eksctl get cluster $CLUSTER_VAR | grep error)
-            if [[ -w $CLUSTER_EXISTS ]]; then
+            if [ -z $CLUSTER_EXISTS ]; then
               echo "will skip cluster creation"
               echo "export CLUSTER_NAME=''" >> $BASH_ENV
             else
