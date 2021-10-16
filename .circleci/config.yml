@@ -49,6 +49,7 @@ jobs:
     steps:
       - install-eksctl
       - run:
+          shell: /bin/bash
           name: Determine created cluster name
           description: |
             Check if cluster exists, and if yes - pass empty cluster name, which will skip cluster creation
