@@ -57,6 +57,11 @@ jobs:
             echo "check cluster creation"
             echo $CLUSTER_VAR
             CLUSTER_NOT_EXIST=$(eksctl get cluster $CLUSTER_VAR 2>&1 >/dev/null)
+
+            echo "!!!!!!!!!"
+            echo $CLUSTER_NOT_EXIST
+            echo "!!!!!!!!!"
+
             if [ ! -z "$CLUSTER_NOT_EXIST" ]; then
               echo "will create cluster"
               echo "export CLUSTER_NAME=$CLUSTER_VAR" >> $BASH_ENV
