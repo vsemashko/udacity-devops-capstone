@@ -5,6 +5,39 @@ orbs:
   kubernetes: circleci/kubernetes@0.12.0
 
 jobs:
+  create-cluster:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster to be created
+        type: string
+    steps:
+      - run:
+          name: Install the eksctl tool
+          description: |
+            Fixed version of install-eksctl command, which have incorrect eksctl download url
+            Original version: https://github.com/CircleCI-Public/aws-eks-orb/blob/master/src/commands/install-eksctl.yml
+            Should be fixed in orb circleci/aws-eks@2.0.0
+          command: |
+            if which eksctl > /dev/null; then
+              echo "eksctl is already installed"
+              exit 0
+            fi
+
+            mkdir -p eksctl_download
+            curl --silent --location --retry 5 "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" \
+              | tar xz -C eksctl_download
+            chmod +x eksctl_download/eksctl
+            SUDO=""
+            if [ $(id -u) -ne 0 ] && which sudo > /dev/null ; then
+              SUDO="sudo"
+            fi
+            $SUDO mv eksctl_download/eksctl /usr/local/bin/
+            rmdir eksctl_download
+      - aws-eks/create-cluster:
+          cluster-name: << parameters.cluster-name >>
+          verbose: true
   test-cluster:
     executor: aws-eks/python3
     parameters:
@@ -23,12 +56,12 @@ jobs:
 workflows:
   deployment:
     jobs:
-      - aws-eks/create-cluster:
+      - create-cluster:
           cluster-name: my-eks-demo
       - test-cluster:
           cluster-name: my-eks-demo
           requires:
-            - aws-eks/create-cluster
+            - create-cluster
       - aws-eks/delete-cluster:
           cluster-name: my-eks-demo
           requires:
