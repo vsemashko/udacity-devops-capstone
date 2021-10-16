@@ -37,7 +37,7 @@ jobs:
             rmdir eksctl_download
       - aws-eks/create-cluster:
           cluster-name: << parameters.cluster-name >>
-          verbose: true
+          verbose: 4
   test-cluster:
     executor: aws-eks/python3
     parameters:
