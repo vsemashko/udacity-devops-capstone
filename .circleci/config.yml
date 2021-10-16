@@ -53,13 +53,15 @@ jobs:
           description: |
             Check if cluster exists, and if yes - pass empty cluster name, which will skip cluster creation
           command: |
+            CLUSTER_VAR= ${<< parameters.cluster-name >>}
             echo "check cluster creation"
-            if [[ eksctl get cluster << parameters.cluster-name >> | grep error ]];
+            echo $CLUSTER_VAR
+            if [[ eksctl get cluster $CLUSTER_VAR | grep error ]];
               echo "will skip cluster creation"
               echo "export CLUSTER_NAME=''" >> $BASH_ENV
             else
               echo "will create cluster"
-              echo "export CLUSTER_NAME=<< pipeline.cluster-name >>" >> $BASH_ENV
+              echo "export CLUSTER_NAME=$CLUSTER_VAR" >> $BASH_ENV
             fi
       - aws-eks/create-cluster:
           cluster-name: << parameters.created-cluster-name >>
