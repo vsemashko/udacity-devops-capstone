@@ -141,11 +141,17 @@ jobs:
                             --header "Circle-Token: ${CIRCLECI_API_KEY}" \
                             --data '{ "branch": "'"$CIRCLE_BRANCH"'", "parameters": { "skip-build": true, "deploy-cluster": true } }'
   start-deployment:
-    docker:
-      - image: 'cimg/base:stable'
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
     steps:
       - checkout
       - kubernetes/install-kubectl
+      - aws-eks/update-kubeconfig-with-authenticator:
+            cluster-name: << parameters.cluster-name >>
       - kubernetes/create-or-update-resource:
           get-rollout-status: true
           resource-file-path: deployment.yml
@@ -216,5 +222,6 @@ workflows:
       - approve-deployment:
           type: approval
       - start-deployment:
+          cluster-name: udacity-devops-capstone-cluster
           requires:
             - approve-deployment
