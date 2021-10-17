@@ -187,6 +187,8 @@ workflows:
           cluster-name: udacity-devops-capstone-cluster
       - test-cluster:
           cluster-name: udacity-devops-capstone-cluster
+          requires:
+            - create-cluster
       - go-to-deployment-workflow:
           requires:
             - test-cluster
