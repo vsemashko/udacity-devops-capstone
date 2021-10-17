@@ -240,10 +240,10 @@ workflows:
             - approve-deployment
       - aws-eks/update-container-image:
           cluster-name: udacity-devops-capstone-cluster
-          container-image-updates: 'udacity-devops-capstone-app=452262056249.dkr.ecr.us-east-2.amazonaws.com/udacity-devops-capstone:latest'
+          container-image-updates: '${AWS_ECR_ACCOUNT_URL}/udacity-devops-capstone:${CIRCLE_WORKFLOW_ID}'
           post-steps:
             - kubernetes/delete-resource:
-                resource-names: nginx-deployment
+                resource-names: udacity-devops-capstone-deployment
                 resource-types: deployment
                 wait: true
           record: true
