@@ -203,6 +203,7 @@ workflows:
           create-repo: true
           tag: 'latest,${CIRCLE_WORKFLOW_ID}'
           attach-workspace: true
+          workspace-root: ~/
           requires:
             - build
       - check-if-cluster-exists:
