@@ -169,6 +169,17 @@ jobs:
           resource-file-path: service.yml
           resource-name: service/nginx-service
           show-kubectl-command: true
+      - aws-eks/update-container-image:
+          cluster-name: << parameters.cluster-name >>
+          container-image-updates: 'udacity-devops-capstone-app=452262056249.dkr.ecr.us-east-2.amazonaws.com/udacity-devops-capstone:latest'
+          post-steps:
+            - kubernetes/delete-resource:
+                resource-names: nginx-deployment
+                resource-types: deployment
+                wait: true
+          record: true
+          resource-name: deployment/nginx-deployment
+
 
   delete-cluster:
     executor: aws-eks/python3
