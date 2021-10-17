@@ -3,6 +3,7 @@ version: 2.1
 orbs:
   aws-eks: circleci/aws-eks@1.1.0
   kubernetes: circleci/kubernetes@0.12.0
+  aws-ecr: circleci/aws-ecr@7.2.0
 
 parameters:
   skip-build:
@@ -61,16 +62,6 @@ jobs:
           name: Lint
           command: |
             make all
-  build:
-    docker:
-      - image: amazon/aws-cli
-    steps:
-      - checkout
-      - run:
-          name: build and push docker image
-          command: |
-            chmod +x ./build_docker.sh
-            ./build_docker.sh
   check-if-cluster-exists:
     executor: aws-eks/python3
     parameters:
@@ -174,13 +165,21 @@ workflows:
     unless: << pipeline.parameters.skip-build >>
     jobs:
       - lint
-      - build:
+      - aws-ecr/build-and-push-image:
+          account-url: AWS_ECR_ACCOUNT_URL
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+          region: AWS_DEFAULT_REGION
+          repo: 'udacity-devops-capstone'
+          skip-when-tags-exist: false
+          create-repo: true
+          tag: 'latest,${CIRCLE_WORKFLOW_ID}'
           requires:
             - lint
       - check-if-cluster-exists:
           cluster-name: udacity-devops-capstone-cluster
           requires:
-            - build
+            - aws-ecr/build-and-push-image
   create-cluster:
     when: << pipeline.parameters.create-cluster >>
     jobs:
