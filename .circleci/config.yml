@@ -73,6 +73,7 @@ jobs:
     steps:
       - install-eksctl
       - run:
+          shell: /bin/bash
           name: Determine if a cluster creation is needed
           command: |
             CLUSTER_VAR="<< parameters.cluster-name >>"
