@@ -61,8 +61,7 @@ jobs:
       - run:
           name: Lint
           command: |
-            make setup
-            make lint
+            make setup-and-lint
   build:
     docker:
       - image: python:3.7.3-stretch
@@ -72,8 +71,7 @@ jobs:
           name: build project
           command: |
             export PROJECT_VERSION=${CIRCLE_WORKFLOW_ID}
-            make setup
-            make build
+            make setup-and-build
       - persist_to_workspace:
           root: ~/
           paths:
