@@ -4,6 +4,20 @@ orbs:
   aws-eks: circleci/aws-eks@1.1.0
   kubernetes: circleci/kubernetes@0.12.0
 
+parameters:
+  skip-build:
+    type: boolean
+    default: false
+    description: should skip build workflow
+  create-cluster:
+    type: boolean
+    default: false
+    description: create new cluster if true
+  deploy-cluster:
+    type: boolean
+    default: false
+    description: continue deploy to cluster
+
 commands:
   install-eksctl:
     steps:
@@ -32,6 +46,51 @@ commands:
 
 
 jobs:
+  lint:
+    docker:
+      - image: python:3.7.3-stretch
+    steps:
+      - checkout
+      - run:
+          name: install dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            # Install hadolint
+            wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 &&\
+                chmod +x /bin/hadolint
+      - run:
+          name: Lint
+          command: |
+            hadolint Dockerfile
+  check-if-cluster-exists:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster to be checked
+        type: string
+    steps:
+      - install-eksctl
+      - run:
+          name: Determine if a cluster creation is needed
+          command: |
+            CLUSTER_VAR="<< parameters.cluster-name >>"
+            CLUSTER_NOT_EXIST=$(eksctl get cluster $CLUSTER_VAR 2>&1 >/dev/null )
+            if [ ! -z "$CLUSTER_NOT_EXIST" ]; then
+              printf "\nTriggering cluster-creation workflow\n"
+              curl -X POST -u ${CIRCLECI_API_KEY}: \
+                --url https://circleci.com/api/v2/project/gh/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline \
+                --header "Content-Type: application/json" \
+                --data '{ "branch": "${CIRCLE_BRANCH}", "parameters": { "create-cluster": true, "skip-build": true } }'
+            else
+              printf "\nTriggering cluster-test workflow\n"
+              curl -X POST -u ${CIRCLECI_API_KEY}: \
+                --url https://circleci.com/api/v2/project/gh/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline \
+                --header "Content-Type: application/json" \
+                --data '{ "branch": "${CIRCLE_BRANCH}", "parameters": { "skip-build": true, "deploy-cluster": true } }'
+            fi
+
   create-cluster:
     executor: aws-eks/python3
     parameters:
@@ -62,9 +121,26 @@ jobs:
       - aws-eks/update-kubeconfig-with-authenticator:
           cluster-name: << parameters.cluster-name >>
       - run:
-          name: Test cluster
           command: |
             kubectl get services
+          name: Test cluster
+  go-to-deployment-workflow:
+      executor: aws-eks/python3
+      steps:
+        - run:
+            name: Start deploy-cluster workflow
+            command: |
+              curl -X POST -u ${CIRCLECI_API_KEY}: \
+                              --url https://circleci.com/api/v2/project/gh/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline \
+                              --header "Content-Type: application/json" \
+                              --data '{ "branch": "${CIRCLE_BRANCH}", "parameters": { "skip-build": true, "deploy-cluster": true, "skip-build": true } }'
+  start-deployment:
+      executor: aws-eks/python3
+      steps:
+        - run:
+            name: Start deployment
+            command: |
+              echo "SUCCESS"
   delete-cluster:
     executor: aws-eks/python3
     parameters:
@@ -77,14 +153,33 @@ jobs:
       - aws-eks/delete-cluster:
           cluster-name: << parameters.cluster-name >>
           verbose: 4
+
 workflows:
-  deployment:
+  build:
+    unless: << pipeline.parameters.skip-build >>
     jobs:
-      - create-cluster
+      - lint
+  check-cluster-existence:
+    unless: << pipeline.parameters.create-cluster >>
+    jobs:
+      - check-if-cluster-exists:
+          cluster-name: my-eks-demo
+  cluster-creation:
+    when: << pipeline.parameters.create-cluster >>
+    jobs:
+      - create-cluster:
+          cluster-name: my-eks-demo
       - test-cluster:
           cluster-name: my-eks-demo
+      - go-to-deployment-workflow
+  deployment:
+    when: << pipeline.parameters.deploy-cluster >>
+    jobs:
+      - approve-deployment:
+          type: approval
+      - start-deployment:
           requires:
-            - create-cluster
+            - approve-deployment
       #- delete-cluster:
       #    cluster-name: my-eks-demo
       #    requires:
