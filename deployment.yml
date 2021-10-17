@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: udacity-devops-capstone-deployment
+  labels:
+    app: udacity-devops-capstone-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: udacity-devops-capstone-app
+  template:
+    metadata:
+      labels:
+        app: udacity-devops-capstone-app
+    spec:
+      containers:
+        - name: udacity-devops-capstone-app
+          image: 452262056249.dkr.ecr.us-east-2.amazonaws.com/udacity-devops-capstone:latest
+          ports:
+            - containerPort: 80

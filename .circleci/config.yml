@@ -141,12 +141,22 @@ jobs:
                             --header "Circle-Token: ${CIRCLECI_API_KEY}" \
                             --data '{ "branch": "'"$CIRCLE_BRANCH"'", "parameters": { "skip-build": true, "deploy-cluster": true } }'
   start-deployment:
-    executor: aws-eks/python3
+    docker:
+      - image: 'cimg/base:stable'
     steps:
-      - run:
-          name: Start deployment
-          command: |
-            echo "SUCCESS"
+      - checkout
+      - kubernetes/install-kubectl
+      - kubernetes/create-or-update-resource:
+          get-rollout-status: true
+          resource-file-path: deployment.yml
+          resource-name: deployment/nginx-deployment
+          show-kubectl-command: true
+      - kubernetes/create-or-update-resource:
+          get-rollout-status: true
+          resource-file-path: service.yml
+          resource-name: service/nginx-service
+          show-kubectl-command: true
+
   delete-cluster:
     executor: aws-eks/python3
     parameters:
