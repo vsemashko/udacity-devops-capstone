@@ -85,15 +85,15 @@ jobs:
 
             if [ ! -z "$CLUSTER_NOT_EXIST" ]; then
               printf "\nTriggering create-cluster workflow\n"
-                            curl -X POST -u ${CIRCLECI_API_KEY}: \
-                --url https://circleci.com/api/v2/project/github/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline \
+                            curl -X POST --url https://circleci.com/api/v2/project/github/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline \
                 --header "Content-Type: application/json" \
+                --header "Circle-Token: ${CIRCLECI_API_KEY}" \
                 --data '{ "branch": "${CIRCLE_BRANCH}", "parameters": { "skip-build": true, "create-cluster": true } }'
             else
               printf "\nTriggering deploy workflow\n"
-              curl -X POST -u ${CIRCLECI_API_KEY}: \
-                --url https://circleci.com/api/v2/project/github/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline \
+              curl -X POST --url https://circleci.com/api/v2/project/github/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline \
                 --header "Content-Type: application/json" \
+                --header "Circle-Token: ${CIRCLECI_API_KEY}" \
                 --data '{ "branch": "${CIRCLE_BRANCH}", "parameters": { "skip-build": true, "deploy-cluster": true } }'
             fi
 
@@ -136,9 +136,9 @@ jobs:
       - run:
           name: Start deploy workflow
           command: |
-            curl -X POST -u ${CIRCLECI_API_KEY}: \
-                            --url https://circleci.com/api/v2/project/gh/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline \
+            curl -X POST --url https://circleci.com/api/v2/project/github/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline \
                             --header "Content-Type: application/json" \
+                            --header "Circle-Token: ${CIRCLECI_API_KEY}" \
                             --data '{ "branch": "${CIRCLE_BRANCH}", "parameters": { "skip-build": true, "deploy-cluster": true } }'
   start-deployment:
     executor: aws-eks/python3
