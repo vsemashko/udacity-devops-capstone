@@ -88,13 +88,13 @@ jobs:
                             curl -X POST --url https://circleci.com/api/v2/project/github/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline \
                 --header "Content-Type: application/json" \
                 --header "Circle-Token: ${CIRCLECI_API_KEY}" \
-                --data '{ "branch": "${CIRCLE_BRANCH}", "parameters": { "skip-build": true, "create-cluster": true } }'
+                --data '{ "branch": "'"$CIRCLE_BRANCH"'", "parameters": { "skip-build": true, "create-cluster": true } }'
             else
               printf "\nTriggering deploy workflow\n"
               curl -X POST --url https://circleci.com/api/v2/project/github/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline \
                 --header "Content-Type: application/json" \
                 --header "Circle-Token: ${CIRCLECI_API_KEY}" \
-                --data '{ "branch": "${CIRCLE_BRANCH}", "parameters": { "skip-build": true, "deploy-cluster": true } }'
+                --data '{ "branch": "'"$CIRCLE_BRANCH"'", "parameters": { "skip-build": true, "deploy-cluster": true } }'
             fi
 
   create-cluster:
@@ -139,7 +139,7 @@ jobs:
             curl -X POST --url https://circleci.com/api/v2/project/github/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline \
                             --header "Content-Type: application/json" \
                             --header "Circle-Token: ${CIRCLECI_API_KEY}" \
-                            --data '{ "branch": "${CIRCLE_BRANCH}", "parameters": { "skip-build": true, "deploy-cluster": true } }'
+                            --data '{ "branch": "'"$CIRCLE_BRANCH"'", "parameters": { "skip-build": true, "deploy-cluster": true } }'
   start-deployment:
     executor: aws-eks/python3
     steps:
