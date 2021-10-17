@@ -69,6 +69,7 @@ jobs:
       - run:
           name: build and push docker image
           command: |
+            chmod +x ./build_docker.sh
             ./build_docker.sh
   check-if-cluster-exists:
     executor: aws-eks/python3
