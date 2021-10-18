@@ -15,3 +15,6 @@ chmod +x ./build_docker.sh
 ```
 It will build docker image and upload it into repository
 
+## CI build pipeline
+
+![](screenshots/udacity_devlops_capstone_pipeline.png#resize50) 
