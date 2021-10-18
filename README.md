@@ -24,8 +24,8 @@ It will build docker image and upload it into repository
 
 ![](screenshots/udacity_devlops_capstone_pipeline.png#resize50) 
 
-Cluster created with two t2.micro nodes, using eksctl cli.
-Deployment described in deployment.yml, it uses 2 pod replicas and rollingUpdate strategy.
-Service described in service.yml and exposes load balanced 8080 port.
+Cluster created with two t2.micro nodes, using eksctl cli.  
+Deployment described in deployment.yml, it uses 2 pod replicas and rollingUpdate strategy.  
+Service described in service.yml and exposes load balanced 8080 port.  
 Deployed app contains image version on html page.
 
