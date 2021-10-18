@@ -168,11 +168,9 @@ jobs:
           cluster-name: << parameters.cluster-name >>
       - kubernetes/create-or-update-resource:
           resource-file-path: deployment.yml
-          resource-name: deployment/nginx-deployment
           show-kubectl-command: true
       - kubernetes/create-or-update-resource:
           resource-file-path: service.yml
-          resource-name: service/nginx-service
           show-kubectl-command: true
 
   delete-cluster:
@@ -187,7 +185,51 @@ jobs:
       - aws-eks/delete-cluster:
           cluster-name: << parameters.cluster-name >>
           verbose: 4
+  test-deployment:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
+    steps:
+      - kubernetes/install
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: << parameters.cluster-name >>
+      - run:
+          name: Test deployment
+          command: |
+            SERVICE_HOST=$(kubectl describe svc/udacity-devops-capstone-app | grep "LoadBalancer Ingress:" | awk '{print $3;}')
+            SERVICE_URL="${SERVICE_HOST}:8080"
+            PRODUCT_VERSION="<< pipeline.parameters.product-version >>"
 
+            echo $SERVICE_URL
+            echo $PRODUCT_VERSION
+
+            RESPONSE=$(curl --silent "http://${SERVICE_URL}" | grep $PRODUCT_VERSION)
+
+            if [ ! -z "$RESPONSE" ]; then
+              echo "test successfully passed"
+            else
+              echo "test failed"
+              return 1
+            fi
+  rollback-deployment:
+    executor: aws-eks/python3
+    parameters:
+      cluster-name:
+        description: |
+          Name of the EKS cluster
+        type: string
+    steps:
+      - kubernetes/install
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: << parameters.cluster-name >>
+      - kubernetes/rollback:
+          resource-name: 'deployment.apps/udacity-devops-capstone-deployment'
+          show-kubectl-command: true
+          watch-rollout-status: true
+          watch-timeout: 10m
 workflows:
   build:
     unless: << pipeline.parameters.skip-build >>
@@ -253,3 +295,12 @@ workflows:
           record: true
           requires:
             - start-deployment
+      - test-deployment:
+          cluster-name: udacity-devops-capstone-cluster
+          requires:
+            - aws-eks/update-container-image
+  rollback-deployment:
+    when: on_fail
+    jobs:
+      - rollback-deployment:
+          cluster-name: udacity-devops-capstone-cluster
