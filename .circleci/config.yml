@@ -18,6 +18,10 @@ parameters:
     type: boolean
     default: false
     description: continue deploy to cluster
+  product-version:
+    type: string
+    default: ''
+    description: version of a product to deploy
 
 commands:
   install-eksctl:
@@ -97,13 +101,13 @@ jobs:
                             curl -X POST --url https://circleci.com/api/v2/project/github/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline \
                 --header "Content-Type: application/json" \
                 --header "Circle-Token: ${CIRCLECI_API_KEY}" \
-                --data '{ "branch": "'"$CIRCLE_BRANCH"'", "parameters": { "skip-build": true, "create-cluster": true } }'
+                --data '{ "branch": "'"$CIRCLE_BRANCH"'", "parameters": { "skip-build": true, "create-cluster": true, "product-version": "${CIRCLE_WORKFLOW_ID}" } }'
             else
               printf "\nTriggering deploy workflow\n"
               curl -X POST --url https://circleci.com/api/v2/project/github/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline \
                 --header "Content-Type: application/json" \
                 --header "Circle-Token: ${CIRCLECI_API_KEY}" \
-                --data '{ "branch": "'"$CIRCLE_BRANCH"'", "parameters": { "skip-build": true, "deploy-cluster": true } }'
+                --data '{ "branch": "'"$CIRCLE_BRANCH"'", "parameters": { "skip-build": true, "deploy-cluster": true, "product-version": "${CIRCLE_WORKFLOW_ID}" } }'
             fi
 
   create-cluster:
@@ -145,10 +149,11 @@ jobs:
       - run:
           name: Start deploy workflow
           command: |
+            PRODUCT_VERSION=<< pipeline.parameters.product-version >>
             curl -X POST --url https://circleci.com/api/v2/project/github/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline \
                             --header "Content-Type: application/json" \
                             --header "Circle-Token: ${CIRCLECI_API_KEY}" \
-                            --data '{ "branch": "'"$CIRCLE_BRANCH"'", "parameters": { "skip-build": true, "deploy-cluster": true } }'
+                            --data '{ "branch": "'"$CIRCLE_BRANCH"'", "parameters": { "skip-build": true, "deploy-cluster": true, "product-version": "${PRODUCT_VERSION}" } }'
   start-deployment:
     executor: aws-eks/python3
     parameters:
@@ -240,7 +245,7 @@ workflows:
             - approve-deployment
       - aws-eks/update-container-image:
           cluster-name: udacity-devops-capstone-cluster
-          container-image-updates: 'udacity-devops-capstone-app=${AWS_ECR_ACCOUNT_URL}/udacity-devops-capstone:${CIRCLE_WORKFLOW_ID}'
+          container-image-updates: 'udacity-devops-capstone-app=${AWS_ECR_ACCOUNT_URL}/udacity-devops-capstone:<< pipeline.parameters.product-version >>'
           resource-name: 'deployment.apps/udacity-devops-capstone-deployment'
           show-kubectl-command: true
           watch-rollout-status: true
