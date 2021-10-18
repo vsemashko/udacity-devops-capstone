@@ -174,12 +174,6 @@ jobs:
           resource-file-path: service.yml
           resource-name: service/nginx-service
           show-kubectl-command: true
-      - run:
-          name: Print image to deploy
-          command: |
-            echo "!!!!!!!"
-            echo "udacity-devops-capstone-app=${AWS_ECR_ACCOUNT_URL}/udacity-devops-capstone:<< pipeline.parameters.product-version >>"
-
 
   delete-cluster:
     executor: aws-eks/python3

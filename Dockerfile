@@ -1,3 +1,3 @@
-FROM nginx:1.21.3
+FROM nginx
 
 COPY build/index.html /usr/share/nginx/html
