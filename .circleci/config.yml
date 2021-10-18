@@ -101,13 +101,13 @@ jobs:
                             curl -X POST --url https://circleci.com/api/v2/project/github/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline \
                 --header "Content-Type: application/json" \
                 --header "Circle-Token: ${CIRCLECI_API_KEY}" \
-                --data '{ "branch": "'"$CIRCLE_BRANCH"'", "parameters": { "skip-build": true, "create-cluster": true, "product-version": "${CIRCLE_WORKFLOW_ID}" } }'
+                --data '{ "branch": "'"$CIRCLE_BRANCH"'", "parameters": { "skip-build": true, "create-cluster": true, "product-version": "'"$CIRCLE_WORKFLOW_ID"'" } }'
             else
               printf "\nTriggering deploy workflow\n"
               curl -X POST --url https://circleci.com/api/v2/project/github/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline \
                 --header "Content-Type: application/json" \
                 --header "Circle-Token: ${CIRCLECI_API_KEY}" \
-                --data '{ "branch": "'"$CIRCLE_BRANCH"'", "parameters": { "skip-build": true, "deploy-cluster": true, "product-version": "${CIRCLE_WORKFLOW_ID}" } }'
+                --data '{ "branch": "'"$CIRCLE_BRANCH"'", "parameters": { "skip-build": true, "deploy-cluster": true, "product-version": "'"$CIRCLE_WORKFLOW_ID"'" } }'
             fi
 
   create-cluster:
@@ -153,7 +153,7 @@ jobs:
             curl -X POST --url https://circleci.com/api/v2/project/github/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pipeline \
                             --header "Content-Type: application/json" \
                             --header "Circle-Token: ${CIRCLECI_API_KEY}" \
-                            --data '{ "branch": "'"$CIRCLE_BRANCH"'", "parameters": { "skip-build": true, "deploy-cluster": true, "product-version": "${PRODUCT_VERSION}" } }'
+                            --data '{ "branch": "'"$CIRCLE_BRANCH"'", "parameters": { "skip-build": true, "deploy-cluster": true, "product-version": "'"$PRODUCT_VERSION"'" } }'
   start-deployment:
     executor: aws-eks/python3
     parameters:
