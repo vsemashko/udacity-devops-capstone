@@ -6,7 +6,7 @@
 This project contains a simple page, which is deployed to a k8s cluster using circleci as CI tool.
 Page contains version of a $CIRCLE_WORKFLOW_ID
 
-Service url: http://aa8da2d38655243eca783d675775f61b-1635727752.us-east-2.elb.amazonaws.com:8080/
+Service url: [deployed-app](http://aa8da2d38655243eca783d675775f61b-1635727752.us-east-2.elb.amazonaws.com:8080).
 
 ## install
 You'll need a python of version 3.7.3
@@ -24,4 +24,8 @@ It will build docker image and upload it into repository
 
 ![](screenshots/udacity_devlops_capstone_pipeline.png#resize50) 
 
-Cluster is 
+Cluster created with two t2.micro nodes, using eksctl cli.
+Deployment described in deployment.yml, it uses 2 pod replicas and rollingUpdate strategy.
+Service described in service.yml and exposes load balanced 8080 port.
+Deployed app contains image version on html page.
+
