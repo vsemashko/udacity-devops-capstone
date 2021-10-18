@@ -214,22 +214,6 @@ jobs:
               echo "test failed"
               return 1
             fi
-  rollback-deployment:
-    executor: aws-eks/python3
-    parameters:
-      cluster-name:
-        description: |
-          Name of the EKS cluster
-        type: string
-    steps:
-      - kubernetes/install
-      - aws-eks/update-kubeconfig-with-authenticator:
-          cluster-name: << parameters.cluster-name >>
-      - kubernetes/rollback:
-          resource-name: 'deployment.apps/udacity-devops-capstone-deployment'
-          show-kubectl-command: true
-          watch-rollout-status: true
-          watch-timeout: 10m
 workflows:
   build:
     unless: << pipeline.parameters.skip-build >>
@@ -299,8 +283,3 @@ workflows:
           cluster-name: udacity-devops-capstone-cluster
           requires:
             - aws-eks/update-container-image
-  rollback-deployment:
-    when: on_fail
-    jobs:
-      - rollback-deployment:
-          cluster-name: udacity-devops-capstone-cluster
